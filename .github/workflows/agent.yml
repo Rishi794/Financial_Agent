@@ -1,4 +1,6 @@
 
+    
+  
 name: Autonomous Research Agent
 
 on:
@@ -17,7 +19,6 @@ jobs:
   research:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
-
     env:
       PYTHONUNBUFFERED: "1"
       GITHUB_TOKEN: ${{ github.token }}
@@ -42,6 +43,15 @@ jobs:
 
       - name: Start local model server
         run: |
+          chmod +x ./runtime/llama-server
+          export LD_LIBRARY_PATH="$GITHUB_WORKSPACE/runtime:${LD_LIBRARY_PATH:-}"
+
+          echo "Runtime files:"
+          ls -lah ./runtime
+
+          echo "Missing shared libraries (if any):"
+          ldd ./runtime/llama-server | grep "not found" || true
+
           ./runtime/llama-server \
             -m models/Qwen3.5-4B-Q4_K_M.gguf \
             --host 127.0.0.1 \
@@ -54,7 +64,6 @@ jobs:
             --reasoning on \
             --reasoning-budget 2048 \
             > /tmp/llama.log 2>&1 &
-
           echo $! > /tmp/llama.pid
 
           for i in $(seq 1 240); do
@@ -72,24 +81,14 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
           git add memory workspace
-
-          if git diff --cached --quiet; then
-            exit 0
-          fi
-
+          if git diff --cached --quiet; then exit 0; fi
           git commit -m "agent: persist research run"
-
           for i in 1 2 3; do
-            git pull --rebase origin "${GITHUB_REF_NAME}" && \
-            git push origin "HEAD:${GITHUB_REF_NAME}" && \
-            exit 0
-
+            git pull --rebase origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}" && exit 0
             git rebase --abort || true
             sleep $((i * 3))
           done
-
           exit 1
 
       - name: Upload diagnostics
@@ -101,3 +100,4 @@ jobs:
             /tmp/llama.log
           retention-days: 14
           if-no-files-found: ignore
+
