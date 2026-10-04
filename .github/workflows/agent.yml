@@ -1,0 +1,86 @@
+name: Autonomous Research Agent
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/30 * * * *"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: autonomous-research-agent
+  cancel-in-progress: false
+
+jobs:
+  research:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 24
+    env:
+      PYTHONUNBUFFERED: "1"
+      GITHUB_TOKEN: ${{ github.token }}
+      PYTHONPATH: .
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Cache model and runtime
+        uses: actions/cache@v4
+        with:
+          path: |
+            models
+            runtime
+          key: agent-qwen35-4b-gguf-r1-${{ runner.os }}-${{ hashFiles('config/agent.json') }}
+
+      - name: Prepare model + runtime
+        run: ./scripts/setup_runtime.sh
+
+      - name: Start local model server
+        run: |
+          ./runtime/llama-server \
+            -m models/Qwen3.5-4B-Q4_K_M.gguf \
+            --host 127.0.0.1 \
+            --port 8080 \
+            --ctx-size 8192 \
+            --threads 4 \
+            --batch-size 256 \
+            --ubatch-size 128 \
+            --n-predict 1100 \
+            > /tmp/llama.log 2>&1 &
+          echo $! > /tmp/llama.pid
+          for i in $(seq 1 90); do
+            curl -fsS http://127.0.0.1:8080/health >/dev/null 2>&1 && exit 0
+            sleep 2
+          done
+          cat /tmp/llama.log
+          exit 1
+
+      - name: Run agent
+        run: python3 -m agent.main
+
+      - name: Persist memory
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add memory workspace
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "agent: persist research run"
+          for i in 1 2 3; do
+            git pull --rebase origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}" && exit 0
+            git rebase --abort || true
+            sleep $((i * 3))
+          done
+          exit 1
+
+      - name: Upload diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: agent-diagnostics-${{ github.run_id }}
+          path: |
+            /tmp/llama.log
+          retention-days: 14
+          if-no-files-found: ignore

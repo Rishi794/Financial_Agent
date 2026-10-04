@@ -1,0 +1,2 @@
+# No third-party packages are required by the agent.
+# The GitHub runner provides Python and standard-library modules.

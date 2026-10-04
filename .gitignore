@@ -1,0 +1,6 @@
+models/
+llama/
+__pycache__/
+*.pyc
+*.sqlite3
+/tmp/
