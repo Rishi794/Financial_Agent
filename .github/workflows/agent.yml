@@ -1,4 +1,4 @@
-```yaml
+
 name: Autonomous Research Agent
 
 on:
@@ -101,4 +101,3 @@ jobs:
             /tmp/llama.log
           retention-days: 14
           if-no-files-found: ignore
-```
