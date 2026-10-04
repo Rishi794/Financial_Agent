@@ -7,8 +7,8 @@ source="$ROOT/config/agent.json"
 MODEL_FILE="$ROOT/models/Qwen3.5-4B-Q4_K_M.gguf"
 MODEL_URL="https://huggingface.co/unsloth/Qwen3.5-4B-GGUF/resolve/b5044a21d7238b86a4e8825f7f8327902b37cec6/Qwen3.5-4B-Q4_K_M.gguf"
 EXPECTED="00fe7986ff5f6b463e62455821146049db6f9313603938a70800d1fb69ef11a4"
-LLAMA_ARCHIVE="$ROOT/runtime/llama-b11386-bin-ubuntu-x64.tar.gz"
-LLAMA_URL="https://github.com/ggml-org/llama.cpp/releases/download/b11386/llama-b11386-bin-ubuntu-x64.tar.gz"
+LLAMA_ARCHIVE="$ROOT/runtime/llama-b11382-bin-ubuntu-x64.tar.gz"
+LLAMA_URL="https://github.com/ggml-org/llama.cpp/releases/download/b11382/llama-b11382-bin-ubuntu-x64.tar.gz"
 
 if [[ ! -f "$MODEL_FILE" ]]; then
   echo "Downloading Qwen3.5-4B Q4_K_M..."

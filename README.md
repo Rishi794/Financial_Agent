@@ -63,3 +63,8 @@ python3 tools/view_memory.py --stats
 ```
 
 You do not need Python packages for the agent itself; it uses the standard library.
+
+
+## Reasoning / thinking
+
+The agent runs Qwen3.5-4B with reasoning enabled. `llama-server` is started with a 2048-token reasoning budget and a 4096-token total generation limit so the model has room to think while still producing tool calls or a final JSON response. llama.cpp exposes `--reasoning on`, `--reasoning-budget N`, and `--reasoning-preserve` for this purpose.
