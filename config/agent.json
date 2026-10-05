@@ -1,7 +1,7 @@
 {
   "agent": {
-    "runtime_minutes": 20,
-    "max_steps": 10,
+    "runtime_minutes": 100,
+    "max_steps": 100,
     "max_output_tokens": 4096,
     "temperature": 0.15,
     "context_tokens": 16384,

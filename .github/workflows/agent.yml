@@ -3,7 +3,7 @@ name: Autonomous Research Agent
 on:
   workflow_dispatch:
   schedule:
-    - cron: "*/30 * * * *"
+    - cron: "0 */2 * * *"
 
 permissions:
   contents: write
@@ -15,11 +15,13 @@ concurrency:
 jobs:
   research:
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    timeout-minutes: 135
+
     env:
       PYTHONUNBUFFERED: "1"
       GITHUB_TOKEN: ${{ github.token }}
       PYTHONPATH: .
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -32,7 +34,7 @@ jobs:
           path: |
             models
             runtime
-          key: agent-qwen35-4b-gguf-r3-${{ runner.os }}-${{ hashFiles('config/agent.json', '.github/workflows/agent.yml', 'scripts/setup_runtime.sh') }}
+          key: agent-qwen35-4b-gguf-r4-${{ runner.os }}-${{ hashFiles('config/agent.json', '.github/workflows/agent.yml', 'scripts/setup_runtime.sh') }}
 
       - name: Prepare model + runtime
         run: ./scripts/setup_runtime.sh
@@ -79,7 +81,6 @@ jobs:
             sleep 2
           done
 
-          echo "llama-server failed to become healthy"
           cat /tmp/llama.log
           exit 1
 
@@ -90,14 +91,25 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
           git add memory workspace
-          if git diff --cached --quiet; then exit 0; fi
+
+          if git diff --cached --quiet; then
+            echo "No memory/workspace changes."
+            exit 0
+          fi
+
           git commit -m "agent: persist research run"
+
           for i in 1 2 3; do
-            git pull --rebase origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}" && exit 0
+            git pull --rebase origin "${GITHUB_REF_NAME}" &&
+            git push origin "HEAD:${GITHUB_REF_NAME}" &&
+            exit 0
+
             git rebase --abort || true
             sleep $((i * 3))
           done
+
           exit 1
 
       - name: Upload diagnostics
@@ -110,4 +122,3 @@ jobs:
             /tmp/llama.pid
           retention-days: 14
           if-no-files-found: ignore
-
