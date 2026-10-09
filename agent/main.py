@@ -88,11 +88,17 @@ def run() -> None:
     trace: list[dict[str, Any]] = []
     final: dict[str, Any] | None = None
     last_tool = None
+    run_error: str | None = None
 
     for step in range(1, int(c["agent"]["max_steps"]) + 1):
         if time.time() >= deadline:
             break
-        raw = chat(fit(messages), int(c["agent"]["max_output_tokens"]), float(c["agent"]["temperature"]))
+        try:
+            raw = chat(fit(messages), int(c["agent"]["max_output_tokens"]), float(c["agent"]["temperature"]))
+        except Exception as exc:
+            run_error = clip(f"{type(exc).__name__}: {exc}", 500)
+            trace.append({"step": step, "tool": None, "ok": False, "working_note": "Model request failed; saving the partial run.", "response": run_error})
+            break
         try:
             obj = valid_action(extract_json(raw))
         except Exception as exc:
@@ -127,10 +133,11 @@ def run() -> None:
         messages.append({"role": "user", "content": f"TOOL RESULT ({tool}, success={ok}):\n{result}\n\nContinue the mission. Verify important claims, avoid duplicates, and finish with a durable result when enough evidence exists."})
 
     if final is None:
+        reason = f"The model request failed ({run_error})." if run_error else "The run ended at its time/step budget."
         final = {
             "type": "final", "tool": None, "arguments": {},
-            "working_note": "Execution budget ended; persisted the partial trace so the next run can continue.",
-            "result": "The run ended at its time/step budget. The persisted trace contains the research already performed.",
+            "working_note": f"{reason} Persisted the partial trace so the next run can continue.",
+            "result": f"{reason} The persisted trace contains the research already performed.",
             "facts_to_store": [],
             "lessons_to_store": ["Continue from the latest persisted trace and open loops."],
             "open_loops": ["Resume the unfinished research task from the latest run."],
