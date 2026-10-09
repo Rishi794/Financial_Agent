@@ -36,7 +36,7 @@ The compact index is what gets searched. Full traces are retained separately so 
 
 ## Schedule
 
-The main agent runs every 30 minutes at :07 and :37 UTC. A concurrency lock prevents overlapping runs. A Saturday workflow builds and emails a weekly digest.
+The main agent runs every 3 hours at :07 UTC. A concurrency lock prevents overlapping runs. A Saturday workflow builds and emails a weekly digest.
 
 GitHub currently provides standard GitHub-hosted runners free and unlimited for public repositories. The standard Linux runner is 4 CPU / 16 GB RAM / 14 GB SSD. GitHub-hosted jobs are ephemeral, so persistence is achieved by committing memory into Git. See the official docs before relying on a free public-repo setup.
 

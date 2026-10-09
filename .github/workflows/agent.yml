@@ -3,7 +3,7 @@ name: Autonomous Research Agent
 on:
   workflow_dispatch:
   schedule:
-    - cron: "7,37 * * * *"
+    - cron: "7 */3 * * *"
 
 permissions:
   contents: write
