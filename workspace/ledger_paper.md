@@ -32,45 +32,23 @@ Ledger combines:
 - UCS-Bench accuracy: 33.8% → 38.5% (+4.7%)
 - Ego4D localization: 0.99m median error
 
-## Ablation
-- Temporal persistence, contextual descriptions, and retrieval are complementary
-- Per-scene construction recovers some performance lost across scene changes
+## Memory Type
+- Episodic: object locations, movement histories
+- Semantic: contextual descriptions
+- Procedural: spatial reasoning patterns
 
-## Failure Modes
-- Retrieval failures in stitched streams
-- Construction failures in stitched streams
-- Performance loss across scene changes
+## Key Insight
+Persistent memory works when:
+1. Objects are tracked across scenes
+2. Movement is recorded only after repeated evidence
+3. Retrieval is query-driven, not passive storage
 
-## Compute
-- Requires egocentric video processing
-- 3D object tracking
-- Contextual description generation
-
-## Novelty
-- Persistent 3D object memory from egocentric videos
-- Clustering by resting locations
-- Move recording after repeated evidence
-- Contextual descriptions for spatial reasoning
-
-## Reproducibility
-- Project page: https://...
-- Code: https://...
-
-## Memory Impact
-- Temporal persistence is essential
-- Contextual descriptions improve retrieval
-- Retrieval quality matters
-- Scene changes cause performance degradation
+## Limitations
+- Requires 3D spatial tracking
+- Performance drops across scene changes
+- Storage overhead for movement history
 
 ## Open Questions
-- How does Ledger handle contradictions?
-- What happens with long-term persistence (months)?
-- Can this scale to thousands of objects?
-- How does it compare to semantic memory approaches?
-- What are the failure modes in retrieval?
-
-## Confidence
-MEDIUM (recent paper, need to verify implementation details)
-
-## Tags
-[persistent-memory], [ledger], [egocentric-videos], [3d-object-tracking], [embodied-ai]
+- How does Ledger handle object permanence when never seen again?
+- What happens when objects are modified?
+- Can this scale to complex environments?
